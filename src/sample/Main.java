@@ -25,19 +25,21 @@ public class Main extends Application {
         stage.setTitle("Авторизация");
         mBrowser = new Browser();
         this.stage = stage;
-        stage.setScene(scene);
-        stage.show();
+        //stage.setScene(scene);
+        //stage.show();
         startAuth();
     }
 
     void startAuth() {
-        auth = new Auth(mBrowser);
-        if (auth.readTokenFromFile()) {
+        //auth = new Auth(mBrowser);
+        if (readTokenFromFile()) {
             System.out.print("Прочитан OAuth-токен из файла");
             startApplication();
         } else {
             scene = new Scene(mBrowser, 750, 500, Color.web("#666970"));
-            auth.webAuth();
+            stage.setScene(scene);
+            stage.show();
+            webAuth();
         }
 
     }
@@ -58,6 +60,63 @@ public class Main extends Application {
         BotLogic botLogic = new BotLogic();
     }
 
+
+    void webAuth(){
+        String scope = "messages";
+        String url = "http://api.vkontakte.ru/oauth/authorize?" +
+                "client_id=5320052" +
+                "&scope="+scope+"" +
+                "&display=mobile" +
+                "&redirect_uri=https%3A//oauth.vk.com/blank.html" +
+                "&response_type=token" +
+                "&revoke=1" +
+                "&v=5.29";
+        mBrowser.webEngine.load(url);
+        System.out.println("Запрос авторизации "+url);
+        mBrowser.webEngine.locationProperty().addListener((observable, oldValue, newValue) -> {
+            ReadOnlyStringProperty location = mBrowser.webEngine.locationProperty();
+            String[] parsingTemp = location.toString().split("#");
+            for (String s : parsingTemp) {
+                if (s.startsWith("access_token=")) {
+                    access_token = s.split("&")[0].split("=")[1];
+                    Auth.access_token = access_token;
+                    // Записываем токен в файлец
+                    try (PrintWriter out = new PrintWriter("lib.dat")) {
+                        out.println(access_token);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
+    boolean readTokenFromFile(){
+        BufferedReader br = null;
+
+        try {
+
+            String sCurrentLine;
+
+            br = new BufferedReader(new FileReader("lib.dat"));
+
+            while ((sCurrentLine = br.readLine()) != null && sCurrentLine.length()>1) {
+                Auth.access_token = sCurrentLine;
+                return true;
+            }
+            return false;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (br != null)br.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
 
     public static void main(String[] args) {
         launch(args);

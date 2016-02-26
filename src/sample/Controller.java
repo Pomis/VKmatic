@@ -15,5 +15,6 @@ public class Controller {
     public Controller () {
         WebView browser = new WebView();
         WebEngine webEngine = browser.getEngine();
+        webEngine.load("http://mySite.com");
     }
 }

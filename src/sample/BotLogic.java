@@ -51,8 +51,8 @@ public class BotLogic {
             URLConnection connection = new URL("https://api.vk.com/method/messages.send?" +
                     "user_id="+user_id+
                     "&message="+message+
-                    "&v=5.37"+
                     "&access_token="+Auth.access_token).openConnection();
+            System.out.println("\n"+connection.toString());
             InputStream is = connection.getInputStream();
             InputStreamReader reader = new InputStreamReader(is);
             char[] buffer = new char[256];
